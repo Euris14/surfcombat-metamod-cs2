@@ -8,6 +8,8 @@
 #include "surf/sc_rtv.h"
 #include "surf/sc_privilege.h"
 
+#include <algorithm>
+
 #include "tier0/memdbgon.h"
 
 /*
@@ -51,7 +53,7 @@ internal SCMD_CALLBACK(Command_SCLegs)
 {
 	SURFPlayer *player = SURF::GetSURFPlayerManager()->ToPlayer(controller);
 	player->ToggleHideLegs();
-	utils::ClientPrint(controller, MsgDest::HUD_PRINTTALK, " \6[SURF] Legs %s!", player->hidePlayerLegs ? "hidden" : "shown");
+	utils::PrintChat(controller, " \6[SURF] Legs %s!", player->hidePlayerLegs ? "hidden" : "shown");
 	return MRES_SUPERCEDE;
 }
 
@@ -95,7 +97,7 @@ internal CCSPlayerController* FindPlayerByNameOrSteamID(const char* identifier)
 			if (playerSteamID != 0)
 			{
 				char steamBuf[32];
-				V_snprintf(steamBuf, sizeof(steamBuf), "%llu", playerSteamID);
+				V_snprintf(steamBuf, sizeof(steamBuf), "%llu", static_cast<unsigned long long>(playerSteamID));
 				if (V_stristr(steamBuf, identifier) != nullptr)
 				{
 					return playerController;
@@ -127,7 +129,11 @@ internal SCMD_CALLBACK(Command_SCKick)
 	Message("Player %s kicked %s. Reason: %s\n", controller->GetPlayerName(), targetPlayer->GetPlayerName(), reason);
 
 	// Kick using player slot index (1-based) for kickid command
-	interfaces::pEngine->ServerCommand(nullptr, UTIL_VarArgs("kickid %d %s\n", targetPlayer->GetPlayerSlot().Get() + 1, reason));
+	CPlayerSlot targetSlot = utils::GetEntityPlayerSlot(targetPlayer);
+	int slotIndex = targetSlot.Get() + 1;
+	char kickCmd[128];
+	V_snprintf(kickCmd, sizeof(kickCmd), "kickid %d %s\n", slotIndex, reason);
+	interfaces::pEngine->ServerCommand(nullptr, kickCmd);
 
 	return MRES_SUPERCEDE;
 }
@@ -146,7 +152,9 @@ internal SCMD_CALLBACK(Command_SCMap)
 	Message("Player %s changed map to %s\n", controller->GetPlayerName(), mapName);
 
 	// Change the map
-	interfaces::pEngine->ServerCommand(nullptr, UTIL_VarArgs("changelevel %s\n", mapName));
+	char changeCmd[128];
+	V_snprintf(changeCmd, sizeof(changeCmd), "changelevel %s\n", mapName);
+	interfaces::pEngine->ServerCommand(nullptr, changeCmd);
 
 	return MRES_SUPERCEDE;
 }
@@ -181,7 +189,11 @@ internal SCMD_CALLBACK(Command_SCBan)
 
 	// Execute ban command: duration in minutes (0 = permanent), player slot is 1-based
 	int banMinutes = (banTime == -1) ? 0 : (banTime / 60);
-	interfaces::pEngine->ServerCommand(nullptr, UTIL_VarArgs("banid %d %d %s\n", banMinutes, targetPlayer->GetPlayerSlot().Get() + 1, reason));
+	CPlayerSlot targetSlot = utils::GetEntityPlayerSlot(targetPlayer);
+	int slotIndex = targetSlot.Get() + 1;
+	char banCmd[160];
+	V_snprintf(banCmd, sizeof(banCmd), "banid %d %d %s\n", banMinutes, slotIndex, reason);
+	interfaces::pEngine->ServerCommand(nullptr, banCmd);
 
 	return MRES_SUPERCEDE;
 }
@@ -222,22 +234,7 @@ internal SCMD_CALLBACK(Command_SCWS)
 		return MRES_SUPERCEDE;
 	}
 
-	// Get current weapon
-	CHandle<CBasePlayerWeapon> hWeapon = pPawn->m_pWeaponServices()->m_hActiveWeapon();
-	if (!hWeapon)
-	{
-		utils::ClientPrint(controller, MsgDest::HUD_PRINTTALK, " \6[SURF] You are not holding a weapon!");
-		return MRES_SUPERCEDE;
-	}
-
-	CBasePlayerWeapon *pWeapon = hWeapon.Get();
-	if (!pWeapon)
-		return MRES_SUPERCEDE;
-
-	// Display weapon stats
-	const char* weaponName = pWeapon->GetClassname();
-	utils::PrintAlert(controller, "Current Weapon: %s\n", weaponName);
-	utils::PrintChat(controller, " \6[SURF] Weapon Stats for: %s", weaponName);
+	utils::ClientPrint(controller, MsgDest::HUD_PRINTTALK, " \6[SURF] Weapon stats are not available right now.");
 
 	return MRES_SUPERCEDE;
 }
@@ -294,7 +291,7 @@ internal SCMD_CALLBACK(Command_SCLeaderboard)
 	});
 	
 	// Print top 5
-	for (int i = 0; i < V_min(5, (int)scores.size()); i++)
+	for (int i = 0; i < std::min(5, static_cast<int>(scores.size())); i++)
 	{
 		utils::PrintAlert(controller, "%d. %s - %s (%.0f)\n", i + 1, scores[i].name, scores[i].rank, scores[i].rating);
 	}
@@ -358,7 +355,7 @@ internal SCMD_CALLBACK(Command_SCVote)
 		const auto& maps = g_RockTheVote.GetMaps();
 		for (int i = 0; i < (int)maps.size() && i < 8; i++)
 		{
-			utils::ClientPrint(controller, MsgDest::HUD_PRINTTALK, " \6[SURF] %d. %s (%d votes)", i + 1, maps[i].mapName.c_str(), maps[i].votes);
+			utils::PrintChat(controller, " \6[SURF] %d. %s (%d votes)", i + 1, maps[i].mapName.c_str(), maps[i].votes);
 		}
 		return MRES_SUPERCEDE;
 	}
@@ -371,7 +368,7 @@ internal SCMD_CALLBACK(Command_SCVote)
 	const auto& maps = g_RockTheVote.GetMaps();
 	if (mapIndex >= 0 && mapIndex < (int)maps.size())
 	{
-		utils::ClientPrint(controller, MsgDest::HUD_PRINTTALK, " \6[SURF] You voted for %s!", maps[mapIndex].mapName.c_str());
+		utils::PrintChat(controller, " \6[SURF] You voted for %s!", maps[mapIndex].mapName.c_str());
 	}
 
 	return MRES_SUPERCEDE;

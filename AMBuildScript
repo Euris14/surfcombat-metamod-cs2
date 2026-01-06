@@ -202,8 +202,7 @@ class MMSPluginConfig(object):
         # '-fno-rtti', # hl2sdk-cs2/public/tier1/functors.h:308:556: error: cannot use ‘typeid’ with ‘-fno-rtti’
         '-fno-threadsafe-statics',
         '-Wno-non-virtual-dtor',
-        '-Wno-overloaded-virtual',
-      ]
+        '-Wno-overloaded-virtual',        '-Wno-invalid-offsetof',      ]
       if (cxx.version >= 'gcc-4.7' or cxx.family == 'clang'):
         cxx.cxxflags += ['-Wno-delete-non-virtual-dtor']
       if cxx.family == 'gcc':

@@ -1,6 +1,11 @@
+#pragma once
+
 #include "sc_main.h"
 #include "utils/utils.h"
 #include "utils/ctimer.h"
+#include <functional>
+#include <queue>
+#include <unordered_map>
 
 class Event;
 
@@ -11,21 +16,19 @@ class Event
 {
 public:
 	Event() = delete;
-	Event(const Event& e) = delete;
+	Event(const Event&) = delete;
 
 	Event(std::function<bool(IGameEvent*)> callback, std::function<void()> init)
 	{
 		g_qEventsInit.push(init);
-		this->m_fnCallback = callback;
+		m_fnCallback = callback;
 	}
 
-	~Event()
-	{
-	}
+	~Event() = default;
 
 	void CallBack(IGameEvent* pEvent)
 	{
-		this->m_fnCallback(pEvent);
+		m_fnCallback(pEvent);
 	}
 
 private:
@@ -34,12 +37,12 @@ private:
 
 void Init_EventManager();
 
-#define GAME_EVENT(_eventname, _eventid)															\
-	bool _eventname##_callback(IGameEvent*);														\
-	void _eventname##_init();																		\
-	Event* _eventname##_inst = new Event(_eventname##_callback, _eventname##_init);					\
-	void _eventname##_init()																		\
-	{																								\
-		g_umpEventManager.insert({(_eventid), (_eventname##_inst)});								\
-	}																								\
-	bool _eventname##_callback(IGameEvent* pEvent)													
+#define GAME_EVENT(_eventname, _eventid) \
+	bool _eventname##_callback(IGameEvent*); \
+	void _eventname##_init(); \
+	Event* _eventname##_inst = new Event(_eventname##_callback, _eventname##_init); \
+	void _eventname##_init() \
+	{ \
+		g_umpEventManager.insert({(_eventid), (_eventname##_inst)}); \
+	} \
+	bool _eventname##_callback(IGameEvent* pEvent)

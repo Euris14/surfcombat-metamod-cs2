@@ -8,12 +8,12 @@ typedef uint64_t CNetworkedQuantizedFloat;
 
 #include "utlsymbollarge.h"
 #include "entityhandle.h"
-#ifndef _WIN32
+#if defined(__clang__) && !defined(_WIN32)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wparentheses"
 #endif
 #include "vscript/ivscript.h"
-#ifndef _WIN32
+#if defined(__clang__) && !defined(_WIN32)
 #pragma clang diagnostic pop
 #endif
 #include "ehandle.h"

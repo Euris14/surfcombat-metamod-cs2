@@ -28,7 +28,7 @@ enum RankType
 class PlayerRank
 {
 public:
-	PlayerRank() : m_rank(RANK_UNRANKED), m_rating(0.0f), m_wins(0), m_kills(0) {}
+	PlayerRank() : m_rating(0.0f), m_wins(0), m_rank(RANK_UNRANKED), m_kills(0) {}
 
 	void SetRank(RankType rank) { m_rank = rank; }
 	RankType GetRank() const { return m_rank; }

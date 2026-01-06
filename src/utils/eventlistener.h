@@ -20,9 +20,7 @@ public:
 		g_vecEventListeners.AddToTail(this);
 	}
 
-	~CGameEventListener() override
-	{
-	}
+	~CGameEventListener() override = default;
 
 	void FireGameEvent(IGameEvent* pEvent)
 	{
@@ -44,7 +42,7 @@ extern CEntitySystem* g_pEntitySystem;
 extern CGlobalVars* gpGlobals;
 extern IGameEventManager2* g_gameEventManager;
 
-#define GAME_EVENT_F(_event)												\
-	void _event##_callback(IGameEvent*);									\
-	CGameEventListener _event##_listener(_event##_callback, #_event);		\
-	void _event##_callback(IGameEvent *pEvent)
+#define GAME_EVENT_F(_event)                                               \
+    void _event##_callback(IGameEvent*);                                   \
+    CGameEventListener _event##_listener(_event##_callback, #_event);      \
+    void _event##_callback(IGameEvent *pEvent)

@@ -1,6 +1,8 @@
 #include "sc_event_manager.h"
 #include "sc_features.h"
 #include "sc_rank.h"
+#include <algorithm>
+#include <string>
 
 std::unordered_map<EventID, Event*> g_umpEventManager;
 std::queue<std::function<void()>> g_qEventsInit;
@@ -63,6 +65,8 @@ GAME_EVENT(player_death, EventID::PLAYER_DEATH)
 	if (!pKillerController || !pVictimController)
 		return false;
 
+	CCSPlayerController* pKillerCsController = static_cast<CCSPlayerController*>(pKillerController);
+
 	// Make sure it was actually a kill (not suicide)
 	if (pKillerController == pVictimController)
 		return false;
@@ -78,8 +82,8 @@ GAME_EVENT(player_death, EventID::PLAYER_DEATH)
 	// Give killer 10-5 HP based on random value
 	int hpGain = 5 + (rand() % 6); // Random between 5-10
 	int currentHealth = pKillerPawn->m_iHealth();
-	int maxHealth = pKillerPawn->m_iMaxHealth();
-	int newHealth = V_min(currentHealth + hpGain, maxHealth);
+	const int maxHealth = 100;
+	int newHealth = std::min(currentHealth + hpGain, maxHealth);
 	pKillerPawn->m_iHealth(newHealth);
 
 	// Update killer's rank
@@ -88,7 +92,9 @@ GAME_EVENT(player_death, EventID::PLAYER_DEATH)
 	PlayerRank* pKillerRank = g_RankSystem.GetPlayerRank(killerIndex);
 
 	// Send kill bonus message with rank info
-	g_SurfPlugin.NextFrame([pKillerController, damage, weapon, pKillerRank]()
+	std::string killerName = pKillerCsController ? pKillerCsController->GetPlayerName() : "Unknown";
+
+	g_SurfPlugin.NextFrame([pKillerController, damage, weapon, pKillerRank, killerName]()
 		{
 			utils::PrintCentre(pKillerController, "Kill! Bonus +5-10 HP! Damage: %d (%s)", damage, weapon);
 			utils::PrintAlert(pKillerController, "Killed! Rating: %.0f | Rank: %s | Damage dealt: %d\n", 
@@ -96,10 +102,10 @@ GAME_EVENT(player_death, EventID::PLAYER_DEATH)
 		});
 
 	// Send death message to victim
-	g_SurfPlugin.NextFrame([pVictimController, pKillerController, damage, weapon, pKillerRank]()
+	g_SurfPlugin.NextFrame([pVictimController, damage, weapon, pKillerRank, killerName]()
 		{
 			utils::PrintAlert(pVictimController, "Killed by %s (%s)! Damage taken: %d (%s)\n", 
-				pKillerController->GetPlayerName(), pKillerRank->GetRankName(), damage, weapon);
+				killerName.c_str(), pKillerRank->GetRankName(), damage, weapon);
 		});
 
 	return true;

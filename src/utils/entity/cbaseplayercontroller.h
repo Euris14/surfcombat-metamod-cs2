@@ -12,4 +12,10 @@ public:
 	SCHEMA_FIELD(uint64, m_steamID)
 	SCHEMA_FIELD(CHandle<CCSPlayerPawn>, m_hPawn)
 	SCHEMA_FIELD(char, m_iszPlayerName)
+
+	const char *GetPlayerName()
+	{
+		// Schema exposes the start of the player name buffer as a char field
+		return reinterpret_cast<const char*>(&m_iszPlayerName());
+	}
 };
