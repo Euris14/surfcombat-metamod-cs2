@@ -27,26 +27,26 @@ ambuild
 
 - [x] Red and Blue player models
 - [x] Spawn protection 10 seconds
-- [ ] Commands
+- [x] Commands
     - [x] !hide - teammates hide
-    - [ ] !legs - hide player legs
+    - [x] !legs - hide player legs
     - [x] !rs - reset score
-- [ ] Admin
-    - [ ] Each kill gives you 10-5 HP with green(or any) screen fade (and mb force reload gun without anim)
-    - [ ] !kick <steam_id> or <user_name> \<reason>
-    - [ ] !ban <steam_id> or <user_name> \<reason> <time in seconds (-1 for perm)>
-    - [ ] !gag <steam_id> or <user_name> \<reason> \<time in seconds>
-    - [ ] !map \<map name>
-- [ ] Rock The Vote
-- [ ] Chat player prefix
-- [ ] Rank System (Silver-I to Global Elite)
-    - [ ] Rank will shows in tab or as prefix in chat
-    - [ ] Any benefits of achieving a high rank
-    - [ ] Rating leaderboard?
-- [ ] Events
-    - [ ] It will show how much damage you have done (print alert or chat)
-    - [ ] After death, it will show who you killed and how much damage you did
-- [ ] !ws?
-- [ ] Purchase of privileges via GameCMS or tg bot
+- [x] Admin
+    - [x] Each kill gives you 10-5 HP with green(or any) screen fade (and mb force reload gun without anim)
+    - [x] !kick <steam_id> or <user_name> \<reason>
+    - [x] !ban <steam_id> or <user_name> \<reason> <time in seconds (-1 for perm)>
+    - [x] !gag <steam_id> or <user_name> \<reason> \<time in seconds>
+    - [x] !map \<map name>
+- [x] Rock The Vote
+- [x] Chat player prefix
+- [x] Rank System (Silver-I to Global Elite)
+    - [x] Rank will shows in tab or as prefix in chat
+    - [x] Any benefits of achieving a high rank
+    - [x] Rating leaderboard?
+- [x] Events
+    - [x] It will show how much damage you have done (print alert or chat)
+    - [x] After death, it will show who you killed and how much damage you did
+- [x] !ws?
+- [x] Purchase of privileges via GameCMS or tg bot
 - [ ] ~~User Menu?~~
 
