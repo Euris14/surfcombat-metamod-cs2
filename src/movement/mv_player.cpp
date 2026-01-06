@@ -42,6 +42,8 @@ void MovementPlayer::OnAirAcceleratePost(Vector wishdir, f32 wishspeed, f32 acce
 
 CCSPlayerController *MovementPlayer::GetController()
 {
+	if (!g_pEntitySystem)
+		return nullptr;
 	return dynamic_cast<CCSPlayerController *>(g_pEntitySystem->GetBaseEntity(CEntityIndex(this->index)));
 }
 
@@ -54,7 +56,10 @@ CCSPlayerPawn *MovementPlayer::GetPawn()
 
 CCSPlayer_MovementServices *MovementPlayer::GetMoveServices()
 {
-	return static_cast<CCSPlayer_MovementServices *>(this->GetPawn()->m_pMovementServices());
+	CCSPlayerPawn *pawn = this->GetPawn();
+	if (!pawn)
+		return nullptr;
+	return static_cast<CCSPlayer_MovementServices *>(pawn->m_pMovementServices());
 };
 
 void MovementPlayer::GetOrigin(Vector *origin)

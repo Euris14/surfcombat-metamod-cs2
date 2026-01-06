@@ -95,11 +95,13 @@ bool SurfPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bo
 	SH_ADD_HOOK(ISource2GameClients, ProcessUsercmds, g_pSource2GameClients, SH_MEMBER(this, &SurfPlugin::Hook_ProcessUsercmds_Post), true);
 	SH_ADD_HOOK(ISource2GameEntities, CheckTransmit, g_pSource2GameEntities, SH_MEMBER(this, &SurfPlugin::Hook_CheckTransmit), true);
 	SH_ADD_HOOK(ISource2GameClients, ClientPutInServer, g_pSource2GameClients, SH_MEMBER(this, &SurfPlugin::Hook_ClientPutInServer), false);
-	SH_ADD_HOOK(IGameEventManager2, FireEvent, g_gameEventManager, SH_MEMBER(this, &SurfPlugin::Hook_FireGameEvent), false);
-
 	if (!g_gameEventManager)
 	{
 		META_CONPRINTF("Failed to find GameEventManager\n");
+	}
+	else
+	{
+		SH_ADD_HOOK(IGameEventManager2, FireEvent, g_gameEventManager, SH_MEMBER(this, &SurfPlugin::Hook_FireGameEvent), false);
 	}
 
 	Init_EventManager();
@@ -299,7 +301,8 @@ void SurfPlugin::Hook_StartupServer(const GameSessionConfiguration_t& config, IS
 
 bool SurfPlugin::Hook_FireGameEvent(IGameEvent* pEvent, bool bDontBroadcast)
 {
-	if (!pEvent) return false;
+	if (!pEvent)
+		RETURN_META_VALUE(MRES_IGNORED, false);
 
 	int eventid = pEvent->GetID();
 	const char* eventname = pEvent->GetName();
@@ -309,5 +312,5 @@ bool SurfPlugin::Hook_FireGameEvent(IGameEvent* pEvent, bool bDontBroadcast)
 		g_umpEventManager[static_cast<EventID>(eventid)]->CallBack(pEvent);
 	}
 
-	return true;
+	RETURN_META_VALUE(MRES_IGNORED, true);
 }

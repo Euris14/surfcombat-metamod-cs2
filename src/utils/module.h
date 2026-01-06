@@ -37,23 +37,30 @@ public:
 
 	void *FindSignature(const byte *pData, size_t length)
 	{
-		unsigned char *pMemory;
-		void *return_addr = nullptr;
+		if (!pData || length == 0 || !m_base || m_size == 0 || length > m_size)
+			return nullptr;
 
-		pMemory = (byte *)m_base;
+		unsigned char *pMemory = (byte *)m_base;
+		const size_t lastStart = m_size - length;
 
-		for (size_t i = 0; i < m_size; i++)
+		for (size_t i = 0; i <= lastStart; i++)
 		{
-			size_t Matches = 0;
-			while (*(pMemory + i + Matches) == pData[Matches] || pData[Matches] == '\x2A')
+			bool matched = true;
+			for (size_t j = 0; j < length; j++)
 			{
-				Matches++;
-				if (Matches == length)
-					return_addr = (void *)(pMemory + i);
+				const byte needle = pData[j];
+				if (needle != '\x2A' && pMemory[i + j] != needle)
+				{
+					matched = false;
+					break;
+				}
 			}
+
+			if (matched)
+				return (void *)(pMemory + i);
 		}
 
-		return return_addr;
+		return nullptr;
 	}
 
 	// Will break with string containing \0 !!!

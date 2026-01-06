@@ -20,7 +20,13 @@ class CDetour : public CDetourBase
 {
 public:
 	CDetour(CModule **pModule, T *pfnDetour, const char *pszName, size_t sigLength, byte *pSignature = nullptr) :
-		m_pModule(pModule), m_pfnDetour(pfnDetour), m_pszName(pszName), m_pSignature(pSignature), m_sigLength(sigLength)
+		m_pModule(pModule),
+		m_pfnDetour(pfnDetour),
+		m_pszName(pszName),
+		m_pSignature(pSignature),
+		m_sigLength(sigLength),
+		m_pfnFunc(nullptr),
+		m_hook(nullptr)
 	{
 	}
 
@@ -53,6 +59,9 @@ extern CUtlVector<CDetourBase*> g_vecDetours;
 template <typename T>
 void CDetour<T>::CreateDetour()
 {
+	m_pfnFunc = nullptr;
+	m_hook = nullptr;
+
 	if (!m_pModule || !(*m_pModule))
 	{
 		return;
@@ -70,7 +79,22 @@ void CDetour<T>::CreateDetour()
 	}
 
 	m_hook = funchook_create();
-	funchook_prepare(m_hook, (void**)&m_pfnFunc, (void*)m_pfnDetour);
+	if (!m_hook)
+	{
+		Warning("Failed to create funchook for %s\n", m_pszName);
+		m_pfnFunc = nullptr;
+		return;
+	}
+
+	int prepResult = funchook_prepare(m_hook, (void**)&m_pfnFunc, (void*)m_pfnDetour);
+	if (prepResult != 0)
+	{
+		Warning("Failed to prepare detour for %s (error %d)\n", m_pszName, prepResult);
+		funchook_destroy(m_hook);
+		m_hook = nullptr;
+		m_pfnFunc = nullptr;
+		return;
+	}
 
 	g_vecDetours.AddToTail(this);
 }
@@ -78,20 +102,27 @@ void CDetour<T>::CreateDetour()
 template <typename T>
 void CDetour<T>::EnableDetour()
 {
+	if (!m_hook)
+		return;
 	funchook_install(m_hook, 0);
 }
 
 template <typename T>
 void CDetour<T>::DisableDetour()
 {
+	if (!m_hook)
+		return;
 	funchook_uninstall(m_hook, 0);
 }
 
 template <typename T>
 void CDetour<T>::FreeDetour()
 {
+	if (!m_hook)
+		return;
 	DisableDetour();
 	funchook_destroy(m_hook);
+	m_hook = nullptr;
 }
 
 #define DECLARE_DETOUR(name, detour, modulepath) \

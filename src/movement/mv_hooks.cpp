@@ -38,7 +38,19 @@ void movement::InitDetours()
 
 void FASTCALL movement::Detour_ProcessMovement(CCSPlayer_MovementServices *ms, CMoveData *mv)
 {
+	if (!g_pPlayerManager || !ms)
+	{
+		ProcessMovement(ms, mv);
+		return;
+	}
+
 	MovementPlayer *player = g_pPlayerManager->ToPlayer(ms);
+	if (!player)
+	{
+		ProcessMovement(ms, mv);
+		return;
+	}
+
 	//player->currentMoveData = mv;
 	//player->moveDataPre = CMoveData(*mv);
 	player->OnStartProcessMovement();

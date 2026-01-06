@@ -139,27 +139,36 @@ void utils::UnlockConCommands()
 
 void utils::SetEntityMoveType(CBaseEntity *entity, MoveType_t movetype)
 {
+	if (!entity)
+		return;
 	CALL_VIRTUAL(void, offsets::SetMoveType, entity, movetype);
 }
 
 void utils::EntityCollisionRulesChanged(CBaseEntity *entity)
 {
+	if (!entity)
+		return;
 	CALL_VIRTUAL(void, offsets::CollisionRulesChanged, entity);
 }
 
 bool utils::IsEntityPawn(CBaseEntity *entity)
 {
+	if (!entity)
+		return false;
 	return CALL_VIRTUAL(bool, offsets::IsEntityPawn, entity);
 }
 
 bool utils::IsEntityController(CBaseEntity *entity)
 {
+	if (!entity)
+		return false;
 	return CALL_VIRTUAL(bool, offsets::IsEntityController, entity);
 }
 
 CBasePlayerController *utils::GetController(CBaseEntity *entity)
 {
-	CBasePlayerController *controller = nullptr;
+	if (!entity)
+		return nullptr;
 
 	if (utils::IsEntityPawn(entity))
 	{
@@ -177,14 +186,19 @@ CBasePlayerController *utils::GetController(CBaseEntity *entity)
 
 CBasePlayerController *utils::GetController(CPlayerSlot slot)
 {
+	if (!g_pEntitySystem)
+		return nullptr;
 	return static_cast<CBasePlayerController*>(g_pEntitySystem->GetBaseEntity(CEntityIndex(slot.Get() + 1)));
 }
 
 bool utils::IsButtonDown(CInButtonState *buttons, u64 button, bool onlyDown)
 {
+	if (!buttons)
+		return false;
+
 	if (onlyDown)
 	{
-		return buttons->m_pButtonStates[0] & button;
+		return (buttons->m_pButtonStates[0] & button) != 0;
 	}
 	else
 	{
@@ -200,7 +214,11 @@ bool utils::IsButtonDown(CInButtonState *buttons, u64 button, bool onlyDown)
 					if (currentButton & 1)
 					{
 						u64 keyMask = 1ull << key;
-						EInButtonState keyState = (EInButtonState)(keyMask && buttons->m_pButtonStates[0] + (keyMask && buttons->m_pButtonStates[1]) * 2 + (keyMask && buttons->m_pButtonStates[2]) * 4);
+						EInButtonState keyState = (EInButtonState)(
+							((buttons->m_pButtonStates[0] & keyMask) ? 1 : 0) |
+							((buttons->m_pButtonStates[1] & keyMask) ? 2 : 0) |
+							((buttons->m_pButtonStates[2] & keyMask) ? 4 : 0)
+						);
 						if (keyState > IN_BUTTON_DOWN_UP)
 						{
 							return true;
@@ -215,7 +233,11 @@ bool utils::IsButtonDown(CInButtonState *buttons, u64 button, bool onlyDown)
 		}
 		else
 		{
-			EInButtonState keyState = (EInButtonState)(button & buttons->m_pButtonStates[0] + (button & buttons->m_pButtonStates[1]) * 2 + (button & buttons->m_pButtonStates[2]) * 4);
+			EInButtonState keyState = (EInButtonState)(
+				((buttons->m_pButtonStates[0] & button) ? 1 : 0) |
+				((buttons->m_pButtonStates[1] & button) ? 2 : 0) |
+				((buttons->m_pButtonStates[2] & button) ? 4 : 0)
+			);
 			if (keyState > IN_BUTTON_DOWN_UP)
 			{
 				return true;
@@ -232,7 +254,9 @@ CPlayerSlot utils::GetEntityPlayerSlot(CBaseEntity *entity)
 	{
 		return -1;
 	}
-	else return controller->m_pEntity->m_EHandle.GetEntryIndex() - 1;
+	if (!controller->m_pEntity)
+		return -1;
+	return controller->m_pEntity->m_EHandle.GetEntryIndex() - 1;
 }
 
 #define FORMAT_STRING(buffer) \
@@ -284,6 +308,7 @@ void utils::PrintHTMLCentre(CBaseEntity *entity, const char *format, ...)
 {
 	CBasePlayerController *controller = utils::GetController(entity);
 	if (!controller) return;
+	if (!g_gameEventManager) return;
 
 	FORMAT_STRING(buffer);
 
@@ -295,7 +320,8 @@ void utils::PrintHTMLCentre(CBaseEntity *entity, const char *format, ...)
 
 	CPlayerSlot slot = controller->entindex() - 1;
 	IGameEventListener2 *listener = utils::GetLegacyGameEventListener(slot);
-	listener->FireGameEvent(event);
+	if (listener)
+		listener->FireGameEvent(event);
 	g_gameEventManager->FreeEvent(event);
 }
 
@@ -326,6 +352,7 @@ void utils::PrintAlertAll(const char *format, ...)
 void utils::PrintHTMLCentreAll(const char *format, ...)
 {
 	FORMAT_STRING(buffer);
+	if (!g_gameEventManager) return;
 
 	IGameEvent *event = g_gameEventManager->CreateEvent("show_survival_respawn_status");
 	if (!event) return;

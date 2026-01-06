@@ -1,7 +1,5 @@
 import os
 
-MMSPlugin.plugin_name = 'surfcombatcs2'
-
 for sdk_name in MMSPlugin.sdks:
   for cxx in MMSPlugin.all_targets:
     sdk = MMSPlugin.sdks[sdk_name]
@@ -12,7 +10,7 @@ for sdk_name in MMSPlugin.sdks:
     binary = MMSPlugin.HL2Library(builder, cxx, MMSPlugin.plugin_name, sdk)
 
     if binary.compiler.family == 'gcc' or binary.compiler.family == 'clang':
-      binary.compiler.cxxflags += ['--std=c++17']
+      binary.compiler.cxxflags += ['-std=c++17']
     elif binary.compiler.family == 'msvc':
       binary.compiler.cxxflags += ['/std:c++17']
 

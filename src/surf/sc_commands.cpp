@@ -75,6 +75,9 @@ internal SCMD_CALLBACK(Command_SCResetScore)
 // Helper function to find a player by name or steam_id
 internal CCSPlayerController* FindPlayerByNameOrSteamID(const char* identifier)
 {
+	if (!g_pEntitySystem)
+		return nullptr;
+
 	for (int i = 1; i <= MAXPLAYERS; i++)
 	{
 		CBaseEntity *entity = g_pEntitySystem->GetBaseEntity(CEntityIndex(i));
@@ -270,6 +273,8 @@ internal SCMD_CALLBACK(Command_SCLeaderboard)
 	};
 	
 	std::vector<PlayerScore> scores;
+	if (!g_pEntitySystem)
+		return MRES_SUPERCEDE;
 	
 	for (int i = 1; i <= MAXPLAYERS; i++)
 	{
